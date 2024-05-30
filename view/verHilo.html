@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container p-5 my-5 border">
+    <h1 id="tituloHilos">Temas - Ver Hilos</h1>
+    <ul id="listaHilos">
+        {% for hilo in hilos %}
+            <li>{{ hilo.texto }}</li>
+            <ul id="comentarios{{ hilo.id }}">
+                {% for comentario in hilo.comentarios %}
+                    <li>{{ comentario }}</li>
+                {% endfor %}
+            </ul>
+            <!-- Agregar botón para comentar -->
+            <button onclick="comentarHilo('{{ hilo.id }}')">Comentar</button>
+        {% endfor %}
+    </ul>
+
+    <!-- Formulario para crear un nuevo hilo -->
+    <form id="crearHiloForm">
+        <h2>Crear Nuevo Hilo</h2>
+        <textarea id="textoHilo" rows="4" cols="50"></textarea><br>
+        <button type="submit">Crear Hilo</button>
+    </form>
+</div>
+
+<script>
+    // Cargar hilos y comentarios almacenados al cargar la página
+    document.addEventListener("DOMContentLoaded", function() {
+        cargarHilos();
+    });
+
+    // Función para cargar hilos y comentarios almacenados
+    function cargarHilos() {
+        var hilos = JSON.parse(localStorage.getItem("hilos")) || [];
+        var listaHilos = document.getElementById("listaHilos");
+        listaHilos.innerHTML = "";
+
+        hilos.forEach(function(hilo) {
+            var nuevoHilo = document.createElement("li");
+            nuevoHilo.textContent = hilo.texto;
+
+            var comentarios = document.createElement("ul");
+            comentarios.id = "comentarios" + hilo.id;
+            hilo.comentarios.forEach(function(comentario) {
+                var nuevoComentario = document.createElement("li");
+                nuevoComentario.textContent = comentario;
+                comentarios.appendChild(nuevoComentario);
+            });
+
+            nuevoHilo.appendChild(comentarios);
+
+            var botonComentar = document.createElement("button");
+            botonComentar.textContent = "Comentar";
+            botonComentar.onclick = function() {
+                comentarHilo(hilo.id);
+            };
+            nuevoHilo.appendChild(botonComentar);
+
+            listaHilos.appendChild(nuevoHilo);
+        });
+    }
+
+    // Función para manejar el envío del formulario de creación de hilo
+    document.getElementById("crearHiloForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+
+        // Obtener el texto del hilo desde el formulario
+        var textoHilo = document.getElementById("textoHilo").value;
+        if (textoHilo) {
+            // Obtener hilos almacenados o inicializar como un arreglo vacío
+            var hilos = JSON.parse(localStorage.getItem("hilos")) || [];
+
+            // Simular el proceso de creación de hilo (puedes cambiar esto según tu lógica)
+            // Aquí podrías enviar el texto del hilo al servidor mediante AJAX para guardarlo en la base de datos
+            var nuevoHilo = {
+                id: hilos.length + 1, // Puedes generar un ID único aquí
+                texto: textoHilo,
+                comentarios: [] // Inicialmente sin comentarios
+            };
+            hilos.push(nuevoHilo);
+
+            // Guardar los hilos en el almacenamiento local
+            localStorage.setItem("hilos", JSON.stringify(hilos));
+
+            // Actualizar la lista de hilos mostrando el nuevo hilo creado
+            cargarHilos();
+
+            // Limpiar el campo de texto después de crear el hilo
+            document.getElementById("textoHilo").value = "";
+        } else {
+            alert("Por favor, introduce el texto del hilo.");
+        }
+    });
+
+    // Función para manejar el evento de comentar un hilo
+    function comentarHilo(idHilo) {
+        var textoComentario = prompt("Introduce tu comentario:");
+        if (textoComentario) {
+            // Obtener hilos almacenados
+            var hilos = JSON.parse(localStorage.getItem("hilos")) || [];
+
+            // Encontrar el hilo correspondiente
+            var hilo = hilos.find(function(item) {
+                return item.id === idHilo;
+            });
+
+            // Agregar comentario al hilo
+            hilo.comentarios.push(textoComentario);
+
+            // Guardar los hilos actualizados en el almacenamiento local
+            localStorage.setItem("hilos", JSON.stringify(hilos));
+
+            // Actualizar la lista de hilos mostrando el comentario agregado
+            cargarHilos();
+        }
+    }
+</script>
+<script>
+    // Resto del código JavaScript...
+
+    function filtrarHilos() {
+        var select = document.getElementById("selectTema");
+        var temaSeleccionado = select.options[select.selectedIndex].text;
+        document.getElementById("tituloHilos").textContent = temaSeleccionado + " - Ver Hilos";
+        cargarHilos();
+    }
+</script>
+{% endblock %}
